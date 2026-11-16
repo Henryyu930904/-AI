@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>貝氏機器學習入門 - LLM Wiki 教學簡報</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #dbeafe;
+            --accent: #0d9488;
+            --accent-light: #ccfbf1;
+            --text-dark: #0f172a;
+            --text-gray: #475569;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+            background: #1e293b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: var(--text-dark);
+        }
+        .deck-container {
+            width: 100%;
+            max-width: 900px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+        .progress-bar { height: 6px; background: #e2e8f0; width: 100%; }
+        .progress-fill { height: 100%; background: var(--primary); transition: width 0.3s ease; }
+        .slide-body { padding: 40px 48px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .badge {
+            display: inline-block; background: var(--primary-light); color: var(--primary);
+            font-weight: 700; font-size: 0.85rem; padding: 6px 14px; border-radius: 999px;
+            margin-bottom: 14px; align-self: flex-start;
+        }
+        h1.slide-title { font-size: 2rem; color: var(--text-dark); margin-bottom: 8px; }
+        p.slide-subtitle {
+            font-size: 1.1rem; color: var(--text-gray); margin-bottom: 24px;
+            padding-bottom: 14px; border-bottom: 2px solid #f1f5f9;
+        }
+        ul.points-list { list-style: none; margin-bottom: 24px; }
+        ul.points-list li { font-size: 1.1rem; line-height: 1.7; margin-bottom: 14px; padding-left: 24px; position: relative; }
+        ul.points-list li::before { content: "▸"; color: var(--primary); font-weight: bold; position: absolute; left: 0; }
+        .analogy-box {
+            background: var(--accent-light); border-left: 5px solid var(--accent);
+            padding: 16px 20px; border-radius: 8px; font-size: 1.05rem; color: #115e59; line-height: 1.6;
+        }
+        .controls {
+            background: #f8fafc; padding: 16px 36px; border-top: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 10px 20px;
+            border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+        }
+        .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .page-indicator { font-weight: 600; color: var(--text-gray); }
+    </style>
+</head>
+<body>
+    <div class="deck-container">
+        <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+        <div class="slide-body" id="slide-content"></div>
+        <div class="controls">
+            <button class="btn" id="prev-btn" onclick="changeSlide(-1)">← 上一頁</button>
+            <span class="page-indicator" id="page-num">1 / 6</span>
+            <button class="btn" id="next-btn" onclick="changeSlide(1)">下一頁 →</button>
+        </div>
+    </div>
+    <script>
+        const slides = [{"badge": "封面頁 | 知識庫導讀", "title": "貝氏機器學習與推論入門", "subtitle": "從「先驗信念」到「後驗更新」的資料科學思維", "points": ["知識來源：LLM Wiki（整合 5 篇核心統計與機器學習文獻）", "學習目標：無需深厚微積分基礎，掌握貝氏推論直覺與應用場景", "核心脈絡：貝氏定理 → 共軛先驗 → MLE vs MAP → 貝氏迴歸 → MCMC"], "analogy": "學習地圖：帶你從『單點猜測』進化到『量化不確定性』的機率思維。"}, {"badge": "單元 01 | 來源：01_Bayesian_Fundamentals.md", "title": "貝氏定理與主觀機率思維", "subtitle": "關鍵字：基礎概念 / 貝氏定理 / Prior / Posterior", "points": ["核心觀念：貝氏定理公式為 P(θ|X) = [P(X|θ) * P(θ)] / P(X)。它將機率視為「信念的程度」，透過觀察到的資料 (X) 不斷將先驗信念 (Prior) 更新為後驗信念 (Posterior)。", "白話生活比喻：就像醫生看診：先根據經驗猜測感冒機率（先驗），接著量體溫與快篩（證據），最後得出確診機率（後驗）。"], "analogy": "就像醫生看診：先根據經驗猜測感冒機率（先驗），接著量體溫與快篩（證據），最後得出確診機率（後驗）。"}, {"badge": "單元 02 | 來源：02_Conjugate_Priors.md", "title": "共軛先驗 (Conjugate Priors) 與 Beta-Binomial 模型", "subtitle": "關鍵字：數學推導 / 共軛先驗 / Beta分佈", "points": ["核心觀念：當先驗分佈與後驗分佈屬於同一個機率分佈家族時，稱為共軛先驗。在丟硬幣（二項分佈）問題中，使用 Beta(α, β) 作為先驗，觀察到 k 次正面與 n-k 次反面後，後驗分佈直接更新為 Beta(α+k, β+n-k)。", "白話生活比喻：參數 α 與 β 可以直觀理解為「腦中預先模擬過的虛擬正面與反面次數」。"], "analogy": "參數 α 與 β 可以直觀理解為「腦中預先模擬過的虛擬正面與反面次數」。"}, {"badge": "單元 03 | 來源：03_MLE_vs_MAP.md", "title": "最大似然估計 (MLE) 與最大後驗估計 (MAP)", "subtitle": "關鍵字：參數估計 / 正規化 / MLE / MAP", "points": ["核心觀念：MLE 只尋找讓當前資料出現機率最大的參數，資料量少時容易過擬合 (Overfitting)；MAP 則在目標函數中加入先驗分佈 P(θ)，在數學上等價於為模型加上 L2 正規化 (Ridge) 或 L1 正規化 (Lasso)。", "白話生活比喻：MLE 是「眼見為憑，完全聽信眼前少數樣本」；MAP 是「結合過往常識與眼前證據，避免極端結論」。"], "analogy": "MLE 是「眼見為憑，完全聽信眼前少數樣本」；MAP 是「結合過往常識與眼前證據，避免極端結論」。"}, {"badge": "單元 04 | 來源：04_Bayesian_Linear_Regression.md", "title": "貝氏線性迴歸與不確定性量化", "subtitle": "關鍵字：機器學習 / 迴歸分析 / 不確定性", "points": ["核心觀念：傳統線性迴歸只求出一組最佳權重 w，給出單一預測點；貝氏線性迴歸將權重 w 視為隨機變數，推導出權重的後驗分佈，因此在預測新資料時能同時給出「預測平均值」與「預測信賴區間（不確定性）」。", "白話生活比喻：在資料密集的區域，預測區間很窄（模型很有把握）；在沒有資料的未知區域，預測區間會自動變寬（誠實表示不確定）。"], "analogy": "在資料密集的區域，預測區間很窄（模型很有把握）；在沒有資料的未知區域，預測區間會自動變寬（誠實表示不確定）。"}, {"badge": "單元 05 | 來源：05_MCMC_Sampling.md", "title": "馬可夫鏈蒙地卡羅 (MCMC) 數值近似", "subtitle": "關鍵字：進階推論 / MCMC / 數值模擬", "points": ["核心觀念：在複雜高維模型中，貝氏公式分母的邊際概似函數 P(X) = ∫ P(X|θ)P(θ)dθ 往往無法解析積分。MCMC（如 Metropolis-Hastings 或 Gibbs Sampling）透過設計一條平穩分佈為目標後驗分佈的馬可夫鏈，直接從中抽取大量樣本來近似後驗分佈。", "白話生活比喻：無法直接畫出整座山的地形圖（解析解），於是派一個探險家按特定規則在山上隨機漫步，他停留越久的地方代表海拔越高（機率密度越大）。"], "analogy": "無法直接畫出整座山的地形圖（解析解），於是派一個探險家按特定規則在山上隨機漫步，他停留越久的地方代表海拔越高（機率密度越大）。"}];
+        let currentIndex = 0;
+        function renderSlide(index) {
+            const s = slides[index];
+            const pointsHtml = s.points.map(p => `<li>${p}</li>`).join('');
+            const analogyHtml = s.analogy ? `<div class="analogy-box"><strong>💡 直觀理解：</strong>${s.analogy}</div>` : '';
+            document.getElementById('slide-content').innerHTML = `
+                <div>
+                    <span class="badge">${s.badge}</span>
+                    <h1 class="slide-title">${s.title}</h1>
+                    <p class="slide-subtitle">${s.subtitle}</p>
+                    <ul class="points-list">${pointsHtml}</ul>
+                </div>
+                ${analogyHtml}
+            `;
+            document.getElementById('page-num').innerText = `${index + 1} / ${slides.length}`;
+            document.getElementById('prev-btn').disabled = (index === 0);
+            document.getElementById('next-btn').disabled = (index === slides.length - 1);
+            document.getElementById('progress').style.width = `${((index + 1) / slides.length) * 100}%`;
+        }
+        function changeSlide(delta) {
+            const next = currentIndex + delta;
+            if (next >= 0 && next < slides.length) { currentIndex = next; renderSlide(currentIndex); }
+        }
+        renderSlide(0);
+    </script>
+</body>
+</html>
